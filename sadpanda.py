@@ -6,6 +6,12 @@ sadpanda.py
 
 Sadpanda script for downloading doujins and related stuff.
 
+Dependencies
+------------
+
+* Python 3
+* Beautiful Soup 4
+
 Configuration
 -------------
 
