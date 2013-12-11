@@ -143,7 +143,7 @@ def get_img_name(data):
 def main():
 
     # Setup
-    logging.basicConfig(loglevel='DEBUG')
+    logging.basicConfig(level='DEBUG')
     cj = CookieJar()
     opener = urllib.request.build_opener(
         urllib.request.HTTPCookieProcessor(cj))
