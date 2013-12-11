@@ -95,6 +95,7 @@ def get_name(data):
 
 _page_link_pattern = re.compile(r'exhentai.org/s/')
 
+
 def get_page_links(data):
     """Get links to sadpanda pages from page data"""
     soup = BeautifulSoup(data.decode())
@@ -108,8 +109,8 @@ def get_page_links(data):
             links.append(link)
     return links
 
-
 _img_link_pattern = re.compile(r'exhentai.org/fullimg.php')
+
 
 def get_img_link(data):
     """Get image link from page data"""
@@ -131,6 +132,7 @@ def get_img_link(data):
         return link
 
 _img_name_pattern = re.compile(r'^(.*?) ::')
+
 
 def get_img_name(data):
     """Get image name from page data"""
