@@ -177,6 +177,7 @@ def main():
 
     # Download
     links = get_page_links(data)
+    count = 1
     for i in range(0, pages):
         for link in links:
             data = urlopen(link).read()
@@ -185,7 +186,8 @@ def main():
             data = urlopen(imglink).read()
             with open(os.path.join(dest_dir, imgname), 'wb') as f:
                 f.write(data)
-            print("Downloaded {}".format(imgname))
+            print("Downloaded {} ({})".format(imgname, count))
+            count += 1
             time.sleep(5)
         if i + 1 < pages:
             data = urlopen(url + '?p=' + str(i + 1))
