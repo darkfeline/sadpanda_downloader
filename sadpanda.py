@@ -190,7 +190,7 @@ def main():
             count += 1
             time.sleep(5)
         if i + 1 < pages:
-            data = urlopen(url + '?p=' + str(i + 1))
+            data = urlopen(url + '?p=' + str(i + 1)).read()
             links = get_page_links(data)
 
 if __name__ == '__main__':
