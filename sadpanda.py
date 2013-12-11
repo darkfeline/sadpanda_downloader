@@ -82,7 +82,7 @@ def get_pages(data):
             x = a['onclick']
         except KeyError:
             continue
-        if x == 'return false':
+        if x == 'return false' and a.string != '>':
             maxpage = max(maxpage, int(a.string))
     return maxpage
 
