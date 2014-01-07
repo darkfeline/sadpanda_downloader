@@ -18,8 +18,7 @@ Configuration
 Set your username and password below.  Slightly insecure, but easier
 than typing it each time or something.
 
-You can also configure the timeout (Search sleep).  Default is set to 5
-seconds in between pages and 1 second in between tries.  Sadpanda could
+You can also configure the timeouts (Search for time.sleep). Sadpanda could
 block/ban if you spam too fast.
 
 Usage
@@ -28,6 +27,12 @@ Usage
 python sadpanda.py url
 
 url is the the url of the sadpanda manga
+
+Naming
+------
+
+item refers to pages in the doujin
+page refers to pages of items in sadpanda
 
 """
 
@@ -74,7 +79,7 @@ def convert_cookie(cookie):
 
 
 def get_pages(data):
-    """Get number of pages of pages from page data"""
+    """Get number of pages from page data"""
     soup = BeautifulSoup(data.decode())
     maxpage = 1
     for a in soup.find_all('a'):
@@ -97,7 +102,7 @@ _page_link_pattern = re.compile(r'exhentai.org/s/')
 
 
 def get_page_links(data):
-    """Get links to sadpanda pages from page data"""
+    """Get links to items from page data"""
     soup = BeautifulSoup(data.decode())
     links = []
     for a in soup.find_all('a'):
