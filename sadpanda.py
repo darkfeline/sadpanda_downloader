@@ -54,6 +54,7 @@ logger = logging.getLogger(__name__)
 
 FORUMS = "http://forums.e-hentai.org/index.php"
 LOGIN = "http://forums.e-hentai.org/index.php?act=Login&CODE=01&CookieDate=1"
+RESET = "http://exhentai.org/home.php"
 
 ##################################################
 # Username and Password
@@ -159,8 +160,9 @@ def main():
     # parser
     parser = argparse.ArgumentParser()
     parser.add_argument('url')
+    parser.add_argument('-s', '--start', type=int, default=None)
+    parser.add_argument('-e', '--end', type=int, default=None)
     args = parser.parse_args()
-    url = args.url
 
     # Log in
     urlopen(FORUMS)
@@ -173,7 +175,7 @@ def main():
         cj.set_cookie(cookie)
 
     # Get links
-    data = urlopen(url).read()
+    data = urlopen(args.url).read()
     pages = get_pages(data)
     dest_dir = get_name(data)
     print("Downloading {}".format(dest_dir))
@@ -185,20 +187,35 @@ def main():
     # Download
     links = get_page_links(data)
     count = 1
-    for i in range(0, pages):
+    for page in range(0, pages):
         for link in links:
-            data = urlopen(link).read()
-            imgname = get_img_name(data)
-            imglink = get_img_link(data)
-            data = urlopen(imglink).read()
+            if args.start and count < args.start:
+                print('Skipped ({})'.format(count))
+                count += 1
+                continue
+            if args.end and count > args.end:
+                print('Stopping')
+                return
+            while True:
+                data = urlopen(link).read()
+                imgname = get_img_name(data)
+                imglink = get_img_link(data)
+                data = urlopen(imglink).read()
+                if data.startswith(b'You have exceeded your'):
+                    print('Exceeded limit')
+                    urlopen(RESET)
+                    time.sleep(5)
+                else:
+                    break
             with open(os.path.join(dest_dir, imgname), 'wb') as f:
                 f.write(data)
             print("Downloaded {} ({})".format(imgname, count))
             count += 1
             time.sleep(5)
-        if i + 1 < pages:
-            data = urlopen(url + '?p=' + str(i + 1)).read()
+        if page + 1 < pages:
+            data = urlopen(args.url + '?p=' + str(page + 1)).read()
             links = get_page_links(data)
+            time.sleep(10)
 
 if __name__ == '__main__':
     main()
