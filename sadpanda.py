@@ -92,6 +92,17 @@ def get_pages(data):
             maxpage = max(maxpage, int(a.string))
     return maxpage
 
+_num_items_pattern = re.compile(r'^Showing.*? ([0-9]+) images$')
+
+
+def get_items(data):
+    """Get number of items from page data"""
+    soup = BeautifulSoup(data.decode())
+    for p in soup.find_all('p'):
+        if p.string and p.string.startswith("Showing"):
+            match = _num_items_pattern.search(p.string)
+            return match.group(1)
+
 
 def get_name(data):
     """Get name of doujin from page data"""
@@ -177,8 +188,10 @@ def main():
     # Get links
     data = urlopen(args.url).read()
     pages = get_pages(data)
+    max_items = get_items(data)
     dest_dir = get_name(data)
     print("Downloading {}".format(dest_dir))
+    print("Total pages: {}".format(max_items))
 
     # Make dir
     if not os.path.exists(dest_dir):
