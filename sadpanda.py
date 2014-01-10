@@ -173,6 +173,7 @@ def main():
     parser.add_argument('url')
     parser.add_argument('-s', '--start', type=int, default=None)
     parser.add_argument('-e', '--end', type=int, default=None)
+    parser.add_argument('--src', action='store_true')
     args = parser.parse_args()
 
     # Log in
@@ -196,6 +197,11 @@ def main():
     # Make dir
     if not os.path.exists(dest_dir):
         os.mkdir(dest_dir)
+
+    # Touch source if option is set
+    if args.src:
+        with open(os.path.join(dest_dir, 'src'), 'w') as f:
+            f.write(args.url)
 
     # Download
     links = get_page_links(data)
