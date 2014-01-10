@@ -174,6 +174,7 @@ def main():
     parser.add_argument('-s', '--start', type=int, default=None)
     parser.add_argument('-e', '--end', type=int, default=None)
     parser.add_argument('--src', action='store_true')
+    parser.add_argument('--renumber', action='store_true')
     args = parser.parse_args()
 
     # Log in
@@ -190,6 +191,8 @@ def main():
     data = urlopen(args.url).read()
     pages = get_pages(data)
     max_items = get_items(data)
+    max_digits = int(max_items) // 10 + 2  # for renumbering
+    renumber_template = "{{:0{}}}".format(max_digits)
     dest_dir = get_name(data)
     print("Downloading {}".format(dest_dir))
     print("Total pages: {}".format(max_items))
@@ -218,6 +221,9 @@ def main():
             while True:
                 data = urlopen(link).read()
                 imgname = get_img_name(data)
+                if args.renumber:
+                    imgname = renumber_template.format(count) + \
+                              os.path.splitext(imgname)[1]
                 imglink = get_img_link(data)
                 data = urlopen(imglink).read()
                 if data.startswith(b'You have exceeded your'):
