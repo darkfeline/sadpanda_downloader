@@ -15,16 +15,18 @@ Dependencies
 Configuration
 -------------
 
-Set your username and password below.  Slightly insecure, but easier
-than typing it each time or something.
+Create a file in your home directory called .sadpanda.cfg with the following:
 
-You can also configure the timeouts (Search for time.sleep). Sadpanda could
-block/ban if you spam too fast.
+    { "username": "sad", "passwd": "panda"}
+
+
+You can also configure the timeouts manually in this file (Search for
+time.sleep). Sadpanda could block/ban if you spam too fast.
 
 Usage
 -----
 
-python sadpanda.py url
+sadpanda <url>
 
 url is the the url of the sadpanda manga
 
@@ -46,6 +48,7 @@ import os
 import logging
 import time
 import argparse
+import json
 
 from bs4 import BeautifulSoup
 
@@ -56,11 +59,13 @@ FORUMS = "http://forums.e-hentai.org/index.php"
 LOGIN = "http://forums.e-hentai.org/index.php?act=Login&CODE=01&CookieDate=1"
 RESET = "http://exhentai.org/home.php"
 
-##################################################
-# Username and Password
-username = "sad"
-passwd = "panda"
-##################################################
+
+def load_config():
+    """Load config."""
+    path = os.path.join(os.path.expanduser("~"), '.sadpanda.cfg')
+    with open(path) as f:
+        config = json.load(f)
+    return config
 
 
 def urlopen(*args, **kwargs):
@@ -177,6 +182,11 @@ def main():
     parser.add_argument('--renumber', action='store_true')
     args = parser.parse_args()
 
+    # Load config
+    config = load_config()
+    username = config['username']
+    passwd = config['passwd']
+
     # Log in
     urlopen(FORUMS)
     urlopen(LOGIN, urlencode(
@@ -196,6 +206,7 @@ def main():
     dest_dir = get_name(data)
     print("Downloading {}".format(dest_dir))
     print("Total pages: {}".format(max_items))
+    dest_dir = dest_dir.replace('/', ' ')
 
     # Make dir
     if not os.path.exists(dest_dir):
@@ -223,7 +234,7 @@ def main():
                 imgname = get_img_name(data)
                 if args.renumber:
                     imgname = renumber_template.format(count) + \
-                              os.path.splitext(imgname)[1]
+                        os.path.splitext(imgname)[1]
                 imglink = get_img_link(data)
                 data = urlopen(imglink).read()
                 if data.startswith(b'You have exceeded your'):
@@ -240,7 +251,7 @@ def main():
         if page + 1 < pages:
             data = urlopen(args.url + '?p=' + str(page + 1)).read()
             links = get_page_links(data)
-            time.sleep(10)
+            # time.sleep(10)
 
 if __name__ == '__main__':
     main()
