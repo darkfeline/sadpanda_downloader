@@ -1,13 +1,17 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
-from distutils.core import setup
+from setuptools import setup, find_packages
 
 setup(
     name='sadpanda-downloader',
     version='0.1',
-    description='Sadpanda downloader script',
+    package_dir={'': 'src'},
+    packages=find_packages('src'),
+    scripts=['src/bin/sadpanda'],
+
     author='Allen Li',
     author_email='darkfeline@abagofapples.com',
-    package_dir={'': 'src'},
-    scripts=['sadpanda']
+    description='Sadpanda downloader script',
+    license='',
+    url='',
 )
