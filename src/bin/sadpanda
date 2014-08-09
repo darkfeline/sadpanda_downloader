@@ -19,7 +19,6 @@ Create a file in your home directory called .sadpanda.cfg with the following:
 
     { "username": "sad", "passwd": "panda"}
 
-
 You can also configure the timeouts manually in this file (Search for
 time.sleep). Sadpanda could block/ban if you spam too fast.
 
@@ -29,12 +28,6 @@ Usage
 sadpanda <url>
 
 url is the the url of the sadpanda manga
-
-Naming
-------
-
-item refers to pages in the doujin
-page refers to pages of items in sadpanda
 
 """
 
@@ -51,6 +44,9 @@ import argparse
 import json
 
 from bs4 import BeautifulSoup
+
+# item: doujin pages
+# page: displayed page on sadpanda site, which shows a number of items
 
 # Definitions
 logger = logging.getLogger(__name__)
@@ -78,14 +74,14 @@ def urlopen(*args, **kwargs):
 
 
 def convert_cookie(cookie):
-    """Make sadpanda-fied copy of the cookie"""
+    """Make sadpanda-fied copy of the cookie."""
     cookie = copy.deepcopy(cookie)
     cookie.domain = '.exhentai.org'
     return cookie
 
 
-def get_pages(data):
-    """Get number of pages from page data"""
+def get_total_pages(data):
+    """Get the total number of pages from binary HTML data."""
     soup = BeautifulSoup(data.decode())
     maxpage = 1
     for a in soup.find_all('a'):
@@ -100,8 +96,8 @@ def get_pages(data):
 _num_items_pattern = re.compile(r'^Showing.*? ([0-9]+) images$')
 
 
-def get_items(data):
-    """Get number of items from page data"""
+def get_num_items(data):
+    """Get the number of items on a page from binary HTML data."""
     soup = BeautifulSoup(data.decode())
     for p in soup.find_all('p'):
         if p.string and p.string.startswith("Showing"):
@@ -110,7 +106,7 @@ def get_items(data):
 
 
 def get_name(data):
-    """Get name of doujin from page data"""
+    """Get name of doujin from binary HTML data"""
     soup = BeautifulSoup(data.decode())
     h1 = soup.find(id='gn')
     return h1.string
@@ -118,8 +114,8 @@ def get_name(data):
 _page_link_pattern = re.compile(r'exhentai.org/s/')
 
 
-def get_page_links(data):
-    """Get links to items from page data"""
+def get_item_links(data):
+    """Get links to items from binary HTML data"""
     soup = BeautifulSoup(data.decode())
     links = []
     for a in soup.find_all('a'):
@@ -135,7 +131,7 @@ _img_link_pattern = re.compile(r'exhentai.org/fullimg.php')
 
 
 def get_img_link(data):
-    """Get image link from page data"""
+    """Get image link from binary HTML data"""
     soup = BeautifulSoup(data.decode())
     link = None
     for a in soup.find_all('a'):
@@ -157,7 +153,7 @@ _img_name_pattern = re.compile(r'^(.*?) ::')
 
 
 def get_img_name(data):
-    """Get image name from page data"""
+    """Get image name from binary HTML data"""
     soup = BeautifulSoup(data.decode())
     div = soup.find(id="i4")
     match = _img_name_pattern.match(str(div.div.string))
@@ -199,8 +195,8 @@ def main():
 
     # Get links
     data = urlopen(args.url).read()
-    pages = get_pages(data)
-    max_items = get_items(data)
+    pages = get_total_pages(data)
+    max_items = get_num_items(data)
     max_digits = int(max_items) // 10 + 2  # for renumbering
     renumber_template = "{{:0{}}}".format(max_digits)
     dest_dir = get_name(data)
@@ -218,7 +214,7 @@ def main():
             f.write(args.url)
 
     # Download
-    links = get_page_links(data)
+    links = get_item_links(data)
     count = 1
     for page in range(0, pages):
         for link in links:
@@ -250,7 +246,7 @@ def main():
             time.sleep(5)
         if page + 1 < pages:
             data = urlopen(args.url + '?p=' + str(page + 1)).read()
-            links = get_page_links(data)
+            links = get_item_links(data)
             # time.sleep(10)
 
 if __name__ == '__main__':
