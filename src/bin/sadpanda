@@ -93,16 +93,13 @@ def get_total_pages(data):
             maxpage = max(maxpage, int(a.string))
     return maxpage
 
-_num_items_pattern = re.compile(r'^Showing.*? ([0-9]+) images$')
-
 
 def get_num_items(data):
     """Get the number of items on a page from binary HTML data."""
     soup = BeautifulSoup(data.decode())
-    for p in soup.find_all('p'):
-        if p.string and p.string.startswith("Showing"):
-            match = _num_items_pattern.search(p.string)
-            return match.group(1)
+    div = soup.find('div', {'id': 'gdt'})
+    item_numbers = [int(img['alt']) for img in div.find_all('img')]
+    return max(item_numbers) - min(item_numbers) + 1
 
 
 def get_name(data):
