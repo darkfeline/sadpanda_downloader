@@ -25,7 +25,7 @@ time.sleep). Sadpanda could block/ban if you spam too fast.
 Usage
 -----
 
-sadpanda <url>
+    $ sadpanda <url>
 
 url is the the url of the sadpanda manga
 
@@ -49,7 +49,7 @@ from bs4 import BeautifulSoup
 # page: displayed page on sadpanda site, which shows a number of items
 
 # Definitions
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 FORUMS = "http://forums.e-hentai.org/index.php"
 LOGIN = "http://forums.e-hentai.org/index.php?act=Login&CODE=01&CookieDate=1"
@@ -57,19 +57,20 @@ RESET = "http://exhentai.org/home.php"
 
 
 def load_config():
-    """Load config."""
+    """Load configuration."""
     path = os.path.join(os.path.expanduser("~"), '.sadpanda.cfg')
-    with open(path) as f:
-        config = json.load(f)
+    with open(path) as config:
+        config = json.load(config)
     return config
 
 
 def urlopen(*args, **kwargs):
+    """Open URL and return response, retrying if error."""
     while True:
         try:
             return urllib.request.urlopen(*args, **kwargs)
-        except URLError as e:
-            logger.warning("Error %r; retrying...", e)
+        except URLError as err:
+            logger.warning("Error %r; retrying...", err)
         time.sleep(1)
 
 
@@ -84,13 +85,13 @@ def get_total_pages(data):
     """Get the total number of pages from binary HTML data."""
     soup = BeautifulSoup(data.decode())
     maxpage = 1
-    for a in soup.find_all('a'):
+    for element in soup.find_all('a'):
         try:
-            x = a['onclick']
+            onclick_val = element['onclick']
         except KeyError:
             continue
-        if x == 'return false' and a.string != '>':
-            maxpage = max(maxpage, int(a.string))
+        if onclick_val == 'return false' and element.string != '>':
+            maxpage = max(maxpage, int(element.string))
     return maxpage
 
 
@@ -105,39 +106,39 @@ def get_num_items(data):
 def get_name(data):
     """Get name of doujin from binary HTML data"""
     soup = BeautifulSoup(data.decode())
-    h1 = soup.find(id='gn')
-    return h1.string
+    h1_element = soup.find(id='gn')
+    return h1_element.string
 
-_page_link_pattern = re.compile(r'exhentai.org/s/')
+_PAGE_LINK_PATTERN = re.compile(r'exhentai.org/s/')
 
 
 def get_item_links(data):
     """Get links to items from binary HTML data"""
     soup = BeautifulSoup(data.decode())
     links = []
-    for a in soup.find_all('a'):
+    for element in soup.find_all('a'):
         try:
-            link = a['href']
+            link = element['href']
         except KeyError:
             continue
-        if _page_link_pattern.search(link):
+        if _PAGE_LINK_PATTERN.search(link):
             links.append(link)
     return links
 
-_img_link_pattern = re.compile(r'exhentai.org/fullimg.php')
+_IMG_LINK_PATTERN = re.compile(r'exhentai.org/fullimg.php')
 
 
 def get_img_link(data):
     """Get image link from binary HTML data"""
     soup = BeautifulSoup(data.decode())
     link = None
-    for a in soup.find_all('a'):
+    for element in soup.find_all('a'):
         try:
-            x = a['href']
+            href_val = element['href']
         except KeyError:
             continue
-        if _img_link_pattern.search(x):
-            link = x
+        if _IMG_LINK_PATTERN.search(href_val):
+            link = href_val
             break
     if link:
         return link
@@ -146,24 +147,26 @@ def get_img_link(data):
         link = img['src']
         return link
 
-_img_name_pattern = re.compile(r'^(.*?) ::')
+_IMG_NAME_PATTERN = re.compile(r'^(.*?) ::')
 
 
 def get_img_name(data):
     """Get image name from binary HTML data"""
     soup = BeautifulSoup(data.decode())
-    div = soup.find(id="i4")
-    match = _img_name_pattern.match(str(div.div.string))
+    element = soup.find(id="i4")
+    match = _IMG_NAME_PATTERN.match(str(element.div.string))
     return match.group(1)
 
 
 def main():
+    """Main function."""
+    # pylint: disable=too-many-locals,too-many-statements
 
     # Setup
     logging.basicConfig(level='DEBUG')
-    cj = CookieJar()
+    cookie_jar = CookieJar()
     opener = urllib.request.build_opener(
-        urllib.request.HTTPCookieProcessor(cj))
+        urllib.request.HTTPCookieProcessor(cookie_jar))
     urllib.request.install_opener(opener)
 
     # parser
@@ -186,9 +189,11 @@ def main():
         {'UserName': username,
          'PassWord': passwd,
          'x': 0, 'y': 0}).encode())
-    for cookie in (convert_cookie(x)
-                   for x in cj if x.domain == '.e-hentai.org'):
-        cj.set_cookie(cookie)
+    for cookie in (
+            convert_cookie(x)
+            for x in cookie_jar
+            if x.domain == '.e-hentai.org'):
+        cookie_jar.set_cookie(cookie)
 
     # Get links
     data = urlopen(args.url).read()
@@ -207,8 +212,8 @@ def main():
 
     # Touch source if option is set
     if args.src:
-        with open(os.path.join(dest_dir, 'src'), 'w') as f:
-            f.write(args.url)
+        with open(os.path.join(dest_dir, 'src'), 'w') as srcfile:
+            srcfile.write(args.url)
 
     # Download
     links = get_item_links(data)
@@ -236,8 +241,8 @@ def main():
                     time.sleep(5)
                 else:
                     break
-            with open(os.path.join(dest_dir, imgname), 'wb') as f:
-                f.write(data)
+            with open(os.path.join(dest_dir, imgname), 'wb') as imgfile:
+                imgfile.write(data)
             print("Downloaded {} ({})".format(imgname, count))
             count += 1
             time.sleep(5)
