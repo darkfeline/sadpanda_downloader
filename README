@@ -1,0 +1,27 @@
+sadpanda.py
+===========
+
+Sadpanda script for downloading doujins and related stuff.
+
+Dependencies
+------------
+
+* Python 3
+* Beautiful Soup 4
+
+Configuration
+-------------
+
+Create a file in your home directory called .sadpanda.cfg with the following:
+
+    { "username": "sad", "passwd": "panda"}
+
+You can also configure the timeouts manually in this file (Search for
+time.sleep).  Sadpanda could block/ban if you spam too fast.
+
+Usage
+-----
+
+    $ sadpanda <url>
+
+url is the the url of the sadpanda manga
